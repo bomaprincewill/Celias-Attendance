@@ -24,6 +24,11 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
+Important:
+- Use the project base URL like `https://your-project.supabase.co`
+- Do not use the REST endpoint like `https://your-project.supabase.co/rest/v1/`
+- Add the same variables to your Vercel project environment settings before deploying
+
 ### 4. Create Database Tables
 - In your Supabase dashboard, go to **SQL Editor**
 - Click **New Query**

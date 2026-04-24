@@ -4,7 +4,7 @@
  * API remains the same for seamless integration with existing code
  */
 import { Teacher, AttendanceRecord } from './types'
-import { supabase } from './supabase'
+import { getSupabase } from './supabase'
 
 function today(): string {
   return new Date().toISOString().split('T')[0]
@@ -16,6 +16,7 @@ function ts(): string {
 
 // ── Teacher helpers ──────────────────────────────────────────────────────────
 export async function getTeachers(): Promise<Teacher[]> {
+  const supabase = getSupabase()
   const { data, error } = await supabase
     .from('teachers')
     .select('*')
@@ -40,6 +41,7 @@ export async function getTeachers(): Promise<Teacher[]> {
 }
 
 export async function getTeacher(id: string): Promise<Teacher | undefined> {
+  const supabase = getSupabase()
   const { data, error } = await supabase
     .from('teachers')
     .select('*')
@@ -62,6 +64,7 @@ export async function getTeacher(id: string): Promise<Teacher | undefined> {
 }
 
 export async function getTeacherByCredential(credentialId: string): Promise<Teacher | undefined> {
+  const supabase = getSupabase()
   const { data, error } = await supabase
     .from('teachers')
     .select('*')
@@ -84,6 +87,7 @@ export async function getTeacherByCredential(credentialId: string): Promise<Teac
 }
 
 export async function updateTeacher(id: string, patch: Partial<Teacher>): Promise<Teacher | null> {
+  const supabase = getSupabase()
   const updateData: Record<string, any> = {}
 
   if (patch.name) updateData.name = patch.name
@@ -119,6 +123,7 @@ export async function updateTeacher(id: string, patch: Partial<Teacher>): Promis
 }
 
 export async function addTeacher(teacher: Teacher): Promise<Teacher> {
+  const supabase = getSupabase()
   const { data, error } = await supabase
     .from('teachers')
     .insert([
@@ -156,6 +161,7 @@ export async function addTeacher(teacher: Teacher): Promise<Teacher> {
 }
 
 export async function deleteTeacher(id: string): Promise<boolean> {
+  const supabase = getSupabase()
   const { error } = await supabase
     .from('teachers')
     .delete()
@@ -173,6 +179,7 @@ export async function deleteTeacher(id: string): Promise<boolean> {
 
 // ── Attendance helpers ───────────────────────────────────────────────────────
 export async function getAttendance(): Promise<AttendanceRecord[]> {
+  const supabase = getSupabase()
   const { data, error } = await supabase
     .from('attendance_records')
     .select('*')
@@ -196,6 +203,7 @@ export async function getAttendance(): Promise<AttendanceRecord[]> {
 }
 
 export async function getTodayAttendance(): Promise<AttendanceRecord[]> {
+  const supabase = getSupabase()
   const t = today()
   const { data, error } = await supabase
     .from('attendance_records')
@@ -221,6 +229,7 @@ export async function getTodayAttendance(): Promise<AttendanceRecord[]> {
 }
 
 export async function hasClockInToday(teacherId: string): Promise<boolean> {
+  const supabase = getSupabase()
   const t = today()
   const { data, error } = await supabase
     .from('attendance_records')
@@ -233,6 +242,7 @@ export async function hasClockInToday(teacherId: string): Promise<boolean> {
 }
 
 export async function clockIn(teacherId: string, method: 'fingerprint' | 'pin' = 'fingerprint'): Promise<AttendanceRecord | null> {
+  const supabase = getSupabase()
   // Check if already clocked in today
   const alreadyClocked = await hasClockInToday(teacherId)
   if (alreadyClocked) return null
