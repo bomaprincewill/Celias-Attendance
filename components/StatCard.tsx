@@ -16,9 +16,9 @@ const colorMap = {
 
 export default function StatCard({ label, value, sub, color = 'green', icon }: Props) {
   return (
-    <div className={`rounded-2xl border p-5 ${colorMap[color]}`}>
+    <div className={`rounded-2xl border p-4 sm:p-5 ${colorMap[color]}`}>
       {icon && <div className="mb-3 opacity-80">{icon}</div>}
-      <p className="text-3xl font-bold tracking-tight">{value}</p>
+      <p className="text-2xl font-bold tracking-tight sm:text-3xl">{value}</p>
       <p className="text-sm font-medium mt-1 opacity-80">{label}</p>
       {sub && <p className="text-xs mt-0.5 opacity-60">{sub}</p>}
     </div>

@@ -26,7 +26,7 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+    <div className="flex min-h-[calc(100vh-7rem)] items-center justify-center px-4 py-6 sm:py-10">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-2xl bg-green-600 flex items-center justify-center mx-auto mb-4">
@@ -36,7 +36,7 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
           <p className="text-slate-500 mt-2">Enter the admin password to continue</p>
         </div>
 
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">

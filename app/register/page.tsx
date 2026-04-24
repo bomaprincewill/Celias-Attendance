@@ -13,8 +13,6 @@ export default function RegisterPage() {
   const [phase, setPhase] = useState<Phase>('idle')
   const [message, setMessage] = useState('')
   const [tab, setTab] = useState<'enroll' | 'add'>('enroll')
-
-  // New teacher form
   const [form, setForm] = useState({ name: '', staffId: '', subject: '', email: '', phone: '' })
   const [adding, setAdding] = useState(false)
   const [addMsg, setAddMsg] = useState('')
@@ -32,7 +30,6 @@ export default function RegisterPage() {
     setMessage('Place your finger on the sensor to enroll...')
 
     try {
-      // 1. Get challenge
       const challengeRes = await fetch('/api/auth/challenge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -40,7 +37,6 @@ export default function RegisterPage() {
       })
       const { challenge } = await challengeRes.json()
 
-      // 2. Create credential
       const credential = await navigator.credentials.create({
         publicKey: {
           challenge: base64urlToBuffer(challenge),
@@ -51,8 +47,8 @@ export default function RegisterPage() {
             displayName: selected.name,
           },
           pubKeyCredParams: [
-            { alg: -7,   type: 'public-key' }, // ES256
-            { alg: -257, type: 'public-key' }, // RS256
+            { alg: -7, type: 'public-key' },
+            { alg: -257, type: 'public-key' },
           ],
           authenticatorSelection: {
             authenticatorAttachment: 'platform',
@@ -65,7 +61,6 @@ export default function RegisterPage() {
 
       const attRes = credential.response as AuthenticatorAttestationResponse
 
-      // 3. Register on server
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -97,7 +92,7 @@ export default function RegisterPage() {
       } else if (err.name === 'NotSupportedError') {
         setMessage('WebAuthn not supported on this device/browser.')
       } else {
-        setMessage('Enrollment failed: ' + err.message)
+        setMessage(`Enrollment failed: ${err.message}`)
       }
     }
   }
@@ -126,22 +121,21 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">Biometric Registration</h1>
-        <p className="text-slate-500 mt-2">Enroll fingerprints or add new teachers</p>
+    <div className="mx-auto max-w-2xl">
+      <div className="mb-8 text-center">
+        <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Biometric Registration</h1>
+        <p className="mt-2 text-slate-500">Enroll fingerprints or add new teachers</p>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 bg-slate-100 rounded-2xl p-1 mb-6">
+      <div className="mb-6 grid grid-cols-1 gap-2 rounded-2xl bg-slate-100 p-1 sm:grid-cols-2 sm:gap-1">
         {[
           { key: 'enroll', label: 'Enroll Fingerprint' },
-          { key: 'add',    label: 'Add New Teacher' },
+          { key: 'add', label: 'Add New Teacher' },
         ].map(({ key, label }) => (
           <button
             key={key}
-            onClick={() => setTab(key as any)}
-            className={`flex-1 py-2.5 text-sm font-medium rounded-xl transition-all
+            onClick={() => setTab(key as 'enroll' | 'add')}
+            className={`rounded-xl py-2.5 text-sm font-medium transition-all
               ${tab === key ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             {label}
@@ -149,18 +143,16 @@ export default function RegisterPage() {
         ))}
       </div>
 
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
+      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
         {tab === 'enroll' ? (
           <div className="space-y-6">
-            {/* Teacher select */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Select Teacher</label>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Select Teacher</label>
               <div className="relative">
                 <select
                   value={selectedId}
                   onChange={e => { setSelectedId(e.target.value); setPhase('idle'); setMessage('') }}
-                  className="w-full appearance-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-3
-                             text-slate-800 pr-10 focus:outline-none focus:ring-2 focus:ring-green-300"
+                  className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-10 text-slate-800 focus:outline-none focus:ring-2 focus:ring-green-300"
                 >
                   <option value="">— Choose a teacher —</option>
                   {teachers.map(t => (
@@ -170,36 +162,34 @@ export default function RegisterPage() {
                     </option>
                   ))}
                 </select>
-                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <ChevronDown size={16} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
               </div>
             </div>
 
             {selected && (
-              <div className="bg-slate-50 rounded-2xl p-4 text-sm text-slate-600 space-y-1 border border-slate-100">
+              <div className="space-y-1 rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600">
                 <p><span className="font-medium text-slate-800">{selected.name}</span></p>
                 <p>{selected.subject} · {selected.staffId}</p>
-                <p>{selected.email}</p>
+                <p className="break-all sm:break-normal">{selected.email}</p>
                 {selected.credentialId ? (
-                  <span className="inline-flex items-center gap-1 text-emerald-600 font-medium text-xs bg-emerald-50
-                                   border border-emerald-100 px-2.5 py-1 rounded-full mt-1">
+                  <span className="mt-1 inline-flex items-center gap-1 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-600">
                     <CheckCircle size={12} /> Enrolled — re-enrollment will replace existing fingerprint
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-amber-600 font-medium text-xs bg-amber-50
-                                   border border-amber-100 px-2.5 py-1 rounded-full mt-1">
+                  <span className="mt-1 inline-flex items-center gap-1 rounded-full border border-amber-100 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-600">
                     <AlertCircle size={12} /> Not yet enrolled
                   </span>
                 )}
               </div>
             )}
 
-            {/* Scanner */}
             <div className="flex flex-col items-center gap-5 py-4">
               <FingerprintScanner phase={phase} size={150} />
-              <p className={`text-sm font-medium text-center min-h-5
+              <p className={`min-h-5 text-center text-sm font-medium
                 ${phase === 'success' ? 'text-emerald-600' :
-                  phase === 'error'   ? 'text-red-500' :
-                  phase === 'scanning'? 'text-green-600' : 'text-slate-400'}`}>
+                  phase === 'error' ? 'text-red-500' :
+                  phase === 'scanning' ? 'text-green-600' :
+                  'text-slate-400'}`}>
                 {message || 'Select a teacher and click Enroll Fingerprint'}
               </p>
             </div>
@@ -207,70 +197,62 @@ export default function RegisterPage() {
             <button
               onClick={phase === 'success' ? () => { setPhase('idle'); setMessage(''); setSelectedId('') } : handleEnroll}
               disabled={!selectedId || phase === 'scanning'}
-              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-slate-200 disabled:text-slate-400
-                         text-white font-semibold py-3.5 rounded-xl transition-all active:scale-95"
+              className="w-full rounded-xl bg-green-600 py-3.5 font-semibold text-white transition-all active:scale-95 hover:bg-green-700 disabled:bg-slate-200 disabled:text-slate-400"
             >
-              {phase === 'scanning' ? 'Enrolling...' :
-               phase === 'success'  ? 'Enroll Another' :
-               'Enroll Fingerprint'}
+              {phase === 'scanning' ? 'Enrolling...' : phase === 'success' ? 'Enroll Another' : 'Enroll Fingerprint'}
             </button>
           </div>
         ) : (
           <form onSubmit={handleAddTeacher} className="space-y-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="col-span-2">
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Full Name *</label>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Full Name *</label>
                 <input
                   required
                   value={form.name}
                   onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                   placeholder="Mrs. Adaeze Okonkwo"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3
-                             focus:outline-none focus:ring-2 focus:ring-green-300 text-slate-800"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-green-300"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Staff ID *</label>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Staff ID *</label>
                 <input
                   required
                   value={form.staffId}
                   onChange={e => setForm(f => ({ ...f, staffId: e.target.value }))}
                   placeholder="STF-006"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3
-                             focus:outline-none focus:ring-2 focus:ring-green-300 text-slate-800"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-green-300"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Subject *</label>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Subject *</label>
                 <input
                   required
                   value={form.subject}
                   onChange={e => setForm(f => ({ ...f, subject: e.target.value }))}
                   placeholder="Mathematics"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3
-                             focus:outline-none focus:ring-2 focus:ring-green-300 text-slate-800"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-green-300"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Email *</label>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Email *</label>
                 <input
                   required
                   type="email"
                   value={form.email}
                   onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                   placeholder="teacher@school.edu"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3
-                             focus:outline-none focus:ring-2 focus:ring-green-300 text-slate-800"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-green-300"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Phone</label>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Phone</label>
                 <input
                   value={form.phone}
                   onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
                   placeholder="08012345678"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3
-                             focus:outline-none focus:ring-2 focus:ring-green-300 text-slate-800"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-green-300"
                 />
               </div>
             </div>
@@ -284,9 +266,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={adding}
-              className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700
-                         disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-3.5
-                         rounded-xl transition-all active:scale-95"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3.5 font-semibold text-white transition-all active:scale-95 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400"
             >
               <Plus size={18} />
               {adding ? 'Adding...' : 'Add Teacher'}

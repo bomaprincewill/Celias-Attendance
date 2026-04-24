@@ -17,12 +17,12 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-slate-100">
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5 font-semibold text-slate-800">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
+        <Link href="/" className="flex min-w-0 items-center gap-2.5 font-semibold text-slate-800">
           <div className="w-8 h-8 rounded-lg bg-green-600 flex items-center justify-center">
             <GraduationCap size={18} className="text-white" />
           </div>
-          <span>Celias Attendance </span>
+          <span className="truncate text-sm sm:text-base">Celias Attendance</span>
         </Link>
 
         <nav className="hidden sm:flex items-center gap-1">
@@ -48,14 +48,14 @@ export default function Navbar() {
         {/* Mobile menu button */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="sm:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-50"
+          className="shrink-0 rounded-lg p-2 text-slate-600 hover:bg-slate-50 sm:hidden"
         >
           {menuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
 
         {/* Mobile menu */}
         {menuOpen && (
-          <div className="absolute top-full left-0 right-0 bg-white border-b border-slate-100 shadow-lg sm:hidden">
+          <div className="absolute left-0 right-0 top-full bg-white border-b border-slate-100 shadow-lg sm:hidden">
             <nav className="flex flex-col py-2">
               {links.map(({ href, label, icon: Icon }) => {
                 const active = path.startsWith(href)

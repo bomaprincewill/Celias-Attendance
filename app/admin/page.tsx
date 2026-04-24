@@ -47,11 +47,11 @@ export default function AdminDashboard() {
     try {
       const res = await fetch(`/api/teachers?id=${teacherId}`, { method: 'DELETE' })
       if (res.ok) {
-        await load() // Refresh the data
+        await load()
       } else {
         alert('Failed to deregister teacher')
       }
-    } catch (error) {
+    } catch {
       alert('Error deregistering teacher')
     } finally {
       setDeregistering(null)
@@ -59,28 +59,21 @@ export default function AdminDashboard() {
   }
 
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
-
   const enrolled = teachers.filter(t => t.credentialId).length
   const presentToday = todayAtt.length
   const absentToday = teachers.length - presentToday
   const attendancePct = teachers.length ? Math.round((presentToday / teachers.length) * 100) : 0
-
   const clockedInIds = new Set(todayAtt.map(r => r.teacherId))
+  const searchTerm = search.toLowerCase()
 
-  // Filtered views
   const filteredTeachers = teachers.filter(t =>
-    t.name.toLowerCase().includes(search.toLowerCase()) ||
-    t.staffId.toLowerCase().includes(search.toLowerCase()) ||
-    t.subject.toLowerCase().includes(search.toLowerCase())
-  )
-
-  const filteredToday = todayAtt.filter(r =>
-    r.teacherName.toLowerCase().includes(search.toLowerCase()) ||
-    r.staffId.toLowerCase().includes(search.toLowerCase())
+    t.name.toLowerCase().includes(searchTerm) ||
+    t.staffId.toLowerCase().includes(searchTerm) ||
+    t.subject.toLowerCase().includes(searchTerm)
   )
 
   const filteredAll = attendance.filter(r =>
-    r.teacherName.toLowerCase().includes(search.toLowerCase()) ||
+    r.teacherName.toLowerCase().includes(searchTerm) ||
     r.date.includes(search)
   )
 
@@ -99,289 +92,355 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-green-600 border-t-transparent" />
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-green-600 border-t-transparent" />
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Admin Dashboard</h1>
-          <p className="text-slate-500 mt-1 flex items-center gap-1.5">
+          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Admin Dashboard</h1>
+          <p className="mt-1 flex items-center gap-1.5 text-slate-500">
             <Calendar size={14} />
             {today}
           </p>
         </div>
-        <div className="flex gap-2">
-          <button onClick={load}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600
-                       rounded-xl text-sm font-medium hover:bg-slate-50 transition-all">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <button
+            onClick={load}
+            className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition-all hover:bg-slate-50"
+          >
             <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
             Refresh
           </button>
-          <button onClick={exportCSV}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl
-                       text-sm font-medium hover:bg-green-700 transition-all">
+          <button
+            onClick={exportCSV}
+            className="flex items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-green-700"
+          >
             <Download size={14} />
             Export CSV
           </button>
-          <button onClick={logout}
-            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl
-                       text-sm font-medium hover:bg-red-700 transition-all">
+          <button
+            onClick={logout}
+            className="flex items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-red-700"
+          >
             <LogOut size={14} />
             Logout
           </button>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Total Teachers" value={teachers.length} color="green"
-          icon={<Users size={20} />} />
-        <StatCard label="Present Today" value={presentToday}
-          sub={`${attendancePct}% attendance`} color="emerald"
-          icon={<CheckCircle2 size={20} />} />
-        <StatCard label="Absent Today" value={absentToday} color="rose"
-          icon={<XCircle size={20} />} />
-        <StatCard label="Fingerprints Enrolled" value={enrolled}
-          sub={`${teachers.length - enrolled} pending`} color="amber"
-          icon={<Fingerprint size={20} />} />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Total Teachers" value={teachers.length} color="green" icon={<Users size={20} />} />
+        <StatCard label="Present Today" value={presentToday} sub={`${attendancePct}% attendance`} color="emerald" icon={<CheckCircle2 size={20} />} />
+        <StatCard label="Absent Today" value={absentToday} color="rose" icon={<XCircle size={20} />} />
+        <StatCard label="Fingerprints Enrolled" value={enrolled} sub={`${teachers.length - enrolled} pending`} color="amber" icon={<Fingerprint size={20} />} />
       </div>
 
-      {/* Attendance bar */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5">
-        <div className="flex items-center justify-between mb-3">
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm font-medium text-slate-700">Today's Attendance Rate</p>
           <span className="text-2xl font-bold text-slate-900">{attendancePct}%</span>
         </div>
-        <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+        <div className="h-3 overflow-hidden rounded-full bg-slate-100">
           <div
-            className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-700"
+            className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-700"
             style={{ width: `${attendancePct}%` }}
           />
         </div>
-        <div className="flex justify-between mt-2 text-xs text-slate-400">
+        <div className="mt-2 flex justify-between text-xs text-slate-400">
           <span>{presentToday} present</span>
           <span>{absentToday} absent</span>
         </div>
       </div>
 
-      {/* Table section */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        {/* Tab bar + search */}
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3 gap-4">
-          <div className="flex gap-1">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <div className="flex flex-col gap-3 border-b border-slate-100 px-4 py-3 sm:px-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap gap-1">
             {([
-              { key: 'today',    label: "Today's Log" },
-              { key: 'all',      label: 'All Records' },
+              { key: 'today', label: "Today's Log" },
+              { key: 'all', label: 'All Records' },
               { key: 'teachers', label: 'Teachers' },
             ] as const).map(({ key, label }) => (
               <button
                 key={key}
                 onClick={() => setTab(key)}
-                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all
-                  ${tab === key ? 'bg-green-50 text-green-700' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
+                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all
+                  ${tab === key ? 'bg-green-50 text-green-700' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
               >
                 {label}
               </button>
             ))}
           </div>
-          <div className="relative">
+          <div className="relative w-full lg:w-auto">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search..."
-              className="pl-8 pr-4 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded-lg
-                         focus:outline-none focus:ring-2 focus:ring-green-200 w-44"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 py-1.5 pl-8 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-green-200 lg:w-52"
             />
           </div>
         </div>
 
-        {/* Today's log */}
         {tab === 'today' && (
           <div>
-            {/* Present */}
-            <div className="overflow-x-auto">
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-100 bg-slate-50">
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Teacher</th>
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Staff ID</th>
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Subject</th>
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Clock-In</th>
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Method</th>
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Teacher</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Staff ID</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Subject</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Clock-In</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Method</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  {teachers
-                    .filter(t => t.name.toLowerCase().includes(search.toLowerCase()) || t.staffId.toLowerCase().includes(search.toLowerCase()))
-                    .map(teacher => {
-                      const rec = todayAtt.find(r => r.teacherId === teacher.id)
-                      return (
-                        <tr key={teacher.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-5 py-3.5">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center
-                                              text-green-700 text-xs font-bold flex-shrink-0">
-                                {teacher.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
-                              </div>
-                              <span className="font-medium text-slate-800">{teacher.name}</span>
+                  {filteredTeachers.map(teacher => {
+                    const rec = todayAtt.find(r => r.teacherId === teacher.id)
+                    return (
+                      <tr key={teacher.id} className="transition-colors hover:bg-slate-50">
+                        <td className="px-5 py-3.5">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-green-100 text-xs font-bold text-green-700">
+                              {teacher.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
                             </div>
-                          </td>
-                          <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">{teacher.staffId}</td>
-                          <td className="px-5 py-3.5 text-slate-600">{teacher.subject}</td>
-                          <td className="px-5 py-3.5 text-slate-600">
-                            {rec ? (
-                              <span className="flex items-center gap-1.5">
-                                <Clock size={13} className="text-slate-400" />
-                                {new Date(rec.clockInTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                            ) : '—'}
-                          </td>
-                          <td className="px-5 py-3.5">
-                            {rec ? (
-                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium
-                                ${rec.method === 'fingerprint'
-                                  ? 'bg-indigo-50 text-indigo-700'
-                                  : 'bg-slate-100 text-slate-600'}`}>
-                                {rec.method === 'fingerprint' ? <Fingerprint size={11} /> : <KeyRound size={11} />}
-                                {rec.method}
-                              </span>
-                            ) : '—'}
-                          </td>
-                          <td className="px-5 py-3.5">
-                            {rec ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700
-                                               rounded-full text-xs font-medium">
-                                <CheckCircle2 size={11} /> Present
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-rose-50 text-rose-600
-                                               rounded-full text-xs font-medium">
-                                <XCircle size={11} /> Absent
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      )
-                    })}
+                            <span className="font-medium text-slate-800">{teacher.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-5 py-3.5 font-mono text-xs text-slate-500">{teacher.staffId}</td>
+                        <td className="px-5 py-3.5 text-slate-600">{teacher.subject}</td>
+                        <td className="px-5 py-3.5 text-slate-600">
+                          {rec ? (
+                            <span className="flex items-center gap-1.5">
+                              <Clock size={13} className="text-slate-400" />
+                              {new Date(rec.clockInTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          ) : '—'}
+                        </td>
+                        <td className="px-5 py-3.5">
+                          {rec ? (
+                            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium
+                              ${rec.method === 'fingerprint' ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-100 text-slate-600'}`}>
+                              {rec.method === 'fingerprint' ? <Fingerprint size={11} /> : <KeyRound size={11} />}
+                              {rec.method}
+                            </span>
+                          ) : '—'}
+                        </td>
+                        <td className="px-5 py-3.5">
+                          {rec ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                              <CheckCircle2 size={11} /> Present
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-600">
+                              <XCircle size={11} /> Absent
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
-            {teachers.length === 0 && (
-              <div className="text-center py-12 text-slate-400">No teachers found</div>
-            )}
-          </div>
-        )}
-
-        {/* All records */}
-        {tab === 'all' && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Teacher</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Staff ID</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Subject</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Clock-In</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Method</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {filteredAll.length === 0 ? (
-                  <tr><td colSpan={6} className="text-center py-12 text-slate-400">No records yet</td></tr>
-                ) : filteredAll.slice().reverse().map(rec => (
-                  <tr key={rec.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">{rec.date}</td>
-                    <td className="px-5 py-3.5 font-medium text-slate-800">{rec.teacherName}</td>
-                    <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">{rec.staffId}</td>
-                    <td className="px-5 py-3.5 text-slate-600">{rec.subject}</td>
-                    <td className="px-5 py-3.5 text-slate-600">
-                      {new Date(rec.clockInTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium
-                        ${rec.method === 'fingerprint' ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
-                        {rec.method === 'fingerprint' ? <Fingerprint size={11} /> : <KeyRound size={11} />}
-                        {rec.method}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Teachers list */}
-        {tab === 'teachers' && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Teacher</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Staff ID</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Subject</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Email</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Fingerprint</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Enrolled</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {filteredTeachers.map(t => (
-                  <tr key={t.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center
-                                        text-green-700 text-xs font-bold flex-shrink-0">
-                          {t.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
-                        </div>
-                        <span className="font-medium text-slate-800">{t.name}</span>
+            <div className="grid gap-3 p-4 md:hidden">
+              {filteredTeachers.length === 0 ? (
+                <div className="py-12 text-center text-slate-400">No teachers found</div>
+              ) : filteredTeachers.map(teacher => {
+                const rec = todayAtt.find(r => r.teacherId === teacher.id)
+                return (
+                  <div key={teacher.id} className="rounded-2xl border border-slate-200 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-medium text-slate-800">{teacher.name}</p>
+                        <p className="mt-1 text-xs text-slate-500">{teacher.staffId} · {teacher.subject}</p>
                       </div>
-                    </td>
-                    <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">{t.staffId}</td>
-                    <td className="px-5 py-3.5 text-slate-600">{t.subject}</td>
-                    <td className="px-5 py-3.5 text-slate-500 text-xs">{t.email}</td>
-                    <td className="px-5 py-3.5">
-                      {t.credentialId ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700
-                                         rounded-full text-xs font-medium">
-                          <Fingerprint size={11} /> Enrolled
+                      {rec ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                          <CheckCircle2 size={11} /> Present
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700
-                                         rounded-full text-xs font-medium">
-                          Pending
+                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-600">
+                          <XCircle size={11} /> Absent
                         </span>
                       )}
-                    </td>
-                    <td className="px-5 py-3.5 text-slate-500 text-xs">
-                      {t.enrolledAt ? new Date(t.enrolledAt).toLocaleDateString() : '—'}
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <button
-                        onClick={() => handleDeregister(t.id)}
-                        disabled={deregistering === t.id}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg
-                                   text-xs font-medium hover:bg-red-100 transition-all disabled:opacity-50"
-                      >
-                        <Trash2 size={12} />
-                        {deregistering === t.id ? 'Removing...' : 'Deregister'}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                    <div className="mt-3 space-y-2 text-sm text-slate-600">
+                      <p><span className="font-medium text-slate-700">Clock-in:</span> {rec ? new Date(rec.clockInTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '—'}</p>
+                      <p><span className="font-medium text-slate-700">Method:</span> {rec ? rec.method : '—'}</p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </div>
+        )}
+
+        {tab === 'all' && (
+          <>
+            <div className="hidden overflow-x-auto md:block">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50">
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Date</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Teacher</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Staff ID</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Subject</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Clock-In</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Method</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {filteredAll.length === 0 ? (
+                    <tr><td colSpan={6} className="py-12 text-center text-slate-400">No records yet</td></tr>
+                  ) : filteredAll.slice().reverse().map(rec => (
+                    <tr key={rec.id} className="transition-colors hover:bg-slate-50">
+                      <td className="px-5 py-3.5 font-mono text-xs text-slate-500">{rec.date}</td>
+                      <td className="px-5 py-3.5 font-medium text-slate-800">{rec.teacherName}</td>
+                      <td className="px-5 py-3.5 font-mono text-xs text-slate-500">{rec.staffId}</td>
+                      <td className="px-5 py-3.5 text-slate-600">{rec.subject}</td>
+                      <td className="px-5 py-3.5 text-slate-600">
+                        {new Date(rec.clockInTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium
+                          ${rec.method === 'fingerprint' ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
+                          {rec.method === 'fingerprint' ? <Fingerprint size={11} /> : <KeyRound size={11} />}
+                          {rec.method}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="grid gap-3 p-4 md:hidden">
+              {filteredAll.length === 0 ? (
+                <div className="py-12 text-center text-slate-400">No records yet</div>
+              ) : filteredAll.slice().reverse().map(rec => (
+                <div key={rec.id} className="rounded-2xl border border-slate-200 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-medium text-slate-800">{rec.teacherName}</p>
+                      <p className="mt-1 text-xs text-slate-500">{rec.staffId} · {rec.subject}</p>
+                    </div>
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium
+                      ${rec.method === 'fingerprint' ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
+                      {rec.method === 'fingerprint' ? <Fingerprint size={11} /> : <KeyRound size={11} />}
+                      {rec.method}
+                    </span>
+                  </div>
+                  <div className="mt-3 space-y-2 text-sm text-slate-600">
+                    <p><span className="font-medium text-slate-700">Date:</span> {rec.date}</p>
+                    <p><span className="font-medium text-slate-700">Clock-in:</span> {new Date(rec.clockInTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {tab === 'teachers' && (
+          <>
+            <div className="hidden overflow-x-auto md:block">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50">
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Teacher</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Staff ID</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Subject</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Email</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Fingerprint</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Enrolled</th>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {filteredTeachers.map(t => (
+                    <tr key={t.id} className="transition-colors hover:bg-slate-50">
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-green-100 text-xs font-bold text-green-700">
+                            {t.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                          </div>
+                          <span className="font-medium text-slate-800">{t.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5 font-mono text-xs text-slate-500">{t.staffId}</td>
+                      <td className="px-5 py-3.5 text-slate-600">{t.subject}</td>
+                      <td className="px-5 py-3.5 text-xs text-slate-500">{t.email}</td>
+                      <td className="px-5 py-3.5">
+                        {t.credentialId ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                            <Fingerprint size={11} /> Enrolled
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                            Pending
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-5 py-3.5 text-xs text-slate-500">
+                        {t.enrolledAt ? new Date(t.enrolledAt).toLocaleDateString() : '—'}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <button
+                          onClick={() => handleDeregister(t.id)}
+                          disabled={deregistering === t.id}
+                          className="flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition-all hover:bg-red-100 disabled:opacity-50"
+                        >
+                          <Trash2 size={12} />
+                          {deregistering === t.id ? 'Removing...' : 'Deregister'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="grid gap-3 p-4 md:hidden">
+              {filteredTeachers.length === 0 ? (
+                <div className="py-12 text-center text-slate-400">No teachers found</div>
+              ) : filteredTeachers.map(t => (
+                <div key={t.id} className="rounded-2xl border border-slate-200 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-medium text-slate-800">{t.name}</p>
+                      <p className="mt-1 text-xs text-slate-500">{t.staffId} · {t.subject}</p>
+                    </div>
+                    {t.credentialId ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                        <Fingerprint size={11} /> Enrolled
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                        Pending
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-3 space-y-2 text-sm text-slate-600">
+                    <p><span className="font-medium text-slate-700">Email:</span> <span className="break-all">{t.email}</span></p>
+                    <p><span className="font-medium text-slate-700">Enrolled:</span> {t.enrolledAt ? new Date(t.enrolledAt).toLocaleDateString() : '—'}</p>
+                    <p><span className="font-medium text-slate-700">Today:</span> {clockedInIds.has(t.id) ? 'Present' : 'Absent'}</p>
+                  </div>
+                  <button
+                    onClick={() => handleDeregister(t.id)}
+                    disabled={deregistering === t.id}
+                    className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition-all hover:bg-red-100 disabled:opacity-50"
+                  >
+                    <Trash2 size={12} />
+                    {deregistering === t.id ? 'Removing...' : 'Deregister'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>

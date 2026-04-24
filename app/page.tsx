@@ -3,27 +3,28 @@ import { Fingerprint, LayoutDashboard, UserPlus, ShieldCheck, Clock, Users } fro
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center text-center py-16 gap-12">
+    <div className="flex flex-col items-center gap-10 py-10 text-center sm:gap-12 sm:py-16">
       {/* Hero */}
-      <div className="space-y-4 max-w-2xl">
-        <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-1.5 rounded-full text-sm font-medium border border-green-100">
+      <div className="max-w-2xl space-y-4 px-1">
+        <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-green-100 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 sm:px-4 sm:text-sm">
           <ShieldCheck size={14} />
-         Secured Biometric Attendance
+          <span className="truncate">Secured Biometric Attendance</span>
         </div>
-        <h1 className="text-5xl font-bold text-slate-900 leading-tight">
-          Smart Attendance<br />
+        <h1 className="text-4xl font-bold leading-tight text-slate-900 sm:text-5xl">
+          Smart Attendance<br className="hidden sm:block" />
+          <span className="sm:hidden"> </span>
           <span className="text-green-600">for Modern Schools</span>
         </h1>
-        <p className="text-lg text-slate-500 leading-relaxed">
+        <p className="text-base leading-relaxed text-slate-500 sm:text-lg">
           Secure fingerprint-based clock-in for teachers. Real-time admin dashboard.
           No more paper registers or buddy punching.
         </p>
       </div>
 
       {/* Action cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full max-w-3xl">
+      <div className="grid w-full max-w-3xl grid-cols-1 gap-4 sm:gap-5 md:grid-cols-3">
         <Link href="/clockin"
-          className="group flex flex-col items-center gap-4 p-8 bg-white rounded-2xl border border-slate-200
+          className="group flex flex-col items-center gap-4 rounded-2xl border border-slate-200 bg-white p-6 sm:p-8
                      hover:border-green-300 hover:shadow-lg hover:shadow-green-50 transition-all">
           <div className="w-14 h-14 rounded-2xl bg-green-600 flex items-center justify-center
                           group-hover:scale-110 transition-transform">
@@ -36,7 +37,7 @@ export default function Home() {
         </Link>
 
         <Link href="/register"
-          className="group flex flex-col items-center gap-4 p-8 bg-white rounded-2xl border border-slate-200
+          className="group flex flex-col items-center gap-4 rounded-2xl border border-slate-200 bg-white p-6 sm:p-8
                      hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-50 transition-all">
           <div className="w-14 h-14 rounded-2xl bg-emerald-500 flex items-center justify-center
                           group-hover:scale-110 transition-transform">
@@ -49,7 +50,7 @@ export default function Home() {
         </Link>
 
         <Link href="/admin"
-          className="group flex flex-col items-center gap-4 p-8 bg-white rounded-2xl border border-slate-200
+          className="group flex flex-col items-center gap-4 rounded-2xl border border-slate-200 bg-white p-6 sm:p-8
                      hover:border-green-300 hover:shadow-lg hover:shadow-green-50 transition-all">
           <div className="w-14 h-14 rounded-2xl bg-green-600 flex items-center justify-center
                           group-hover:scale-110 transition-transform">
@@ -63,7 +64,7 @@ export default function Home() {
       </div>
 
       {/* Features */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center max-w-lg">
+      <div className="grid max-w-lg grid-cols-1 gap-5 text-center sm:grid-cols-3 sm:gap-8">
         {[
           { icon: Fingerprint, text: 'WebAuthn Biometrics' },
           { icon: Clock,       text: 'Real-time Clock-in' },
