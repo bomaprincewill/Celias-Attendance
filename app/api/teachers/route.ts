@@ -9,7 +9,11 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const body = await req.json()
-  const { name, staffId, subject, email, phone } = body
+  const name = body.name?.trim()
+  const staffId = body.staffId?.trim()
+  const subject = body.subject?.trim()
+  const email = body.email?.trim()
+  const phone = body.phone?.trim() || ''
 
   if (!name || !staffId || !subject || !email) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -27,8 +31,26 @@ export async function POST(req: Request) {
     enrolledAt: null,
   }
 
-  const newTeacher = await addTeacher(teacher)
-  return NextResponse.json(newTeacher, { status: 201 })
+  try {
+    const newTeacher = await addTeacher(teacher)
+    return NextResponse.json(newTeacher, { status: 201 })
+  } catch (error: any) {
+    const message = String(error?.message || '')
+    const code = error?.code
+
+    if (code === '23505' || message.toLowerCase().includes('duplicate')) {
+      return NextResponse.json(
+        { error: 'A teacher with that staff ID or email already exists' },
+        { status: 409 }
+      )
+    }
+
+    console.error('Error creating teacher:', error)
+    return NextResponse.json(
+      { error: 'Unable to create teacher right now. Please try again.' },
+      { status: 500 }
+    )
+  }
 }
 
 export async function DELETE(req: Request) {

@@ -12,11 +12,6 @@ import {
 
 export default function AdminDashboard() {
   const { isAuthenticated, login, logout } = useAdminAuth()
-
-  if (!isAuthenticated) {
-    return <AdminLogin onLogin={login} />
-  }
-
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([])
   const [todayAtt, setTodayAtt] = useState<AttendanceRecord[]>([])
@@ -40,7 +35,14 @@ export default function AdminDashboard() {
     setRefreshing(false)
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setLoading(false)
+      return
+    }
+
+    load()
+  }, [isAuthenticated, load])
 
   const handleDeregister = async (teacherId: string) => {
     setDeregistering(teacherId)
@@ -88,6 +90,10 @@ export default function AdminDashboard() {
     a.href = url
     a.download = `attendance-${new Date().toISOString().split('T')[0]}.csv`
     a.click()
+  }
+
+  if (!isAuthenticated) {
+    return <AdminLogin onLogin={login} />
   }
 
   if (loading) {
