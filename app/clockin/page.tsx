@@ -18,7 +18,7 @@ export default function ClockInPage() {
   const [pin, setPin] = useState('')
 
   useEffect(() => {
-    fetch('/api/teachers').then(r => r.json()).then(setTeachers)
+    loadTeachers()
   }, [])
 
   const selected = teachers.find(t => t.id === selectedId)
@@ -36,7 +36,13 @@ export default function ClockInPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ teacherId: selectedId }),
       })
-      const { challenge } = await challengeRes.json()
+      const challengeData = await parseJsonResponse(challengeRes)
+
+      if (!challengeRes.ok || !challengeData?.challenge) {
+        throw new Error(challengeData?.error || 'Unable to start fingerprint verification')
+      }
+
+      const { challenge } = challengeData
 
       const assertion = await navigator.credentials.get({
         publicKey: {
@@ -68,14 +74,14 @@ export default function ClockInPage() {
         }),
       })
 
-      const data = await res.json()
+      const data = await parseJsonResponse(res)
       if (res.ok) {
         setPhase('success')
-        setRecord(data.record)
+        setRecord(data?.record)
         setMessage(`Welcome, ${selected.name}! Clock-in recorded.`)
       } else {
         setPhase('error')
-        setMessage(data.error || 'Authentication failed')
+        setMessage(data?.error || 'Authentication failed')
       }
     } catch (err: any) {
       if (err.name === 'NotAllowedError') {
@@ -105,7 +111,7 @@ export default function ClockInPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ teacherId: selectedId, method: 'pin' }),
     })
-    const data = await res.json()
+    const data = await parseJsonResponse(res)
 
     if (res.ok) {
       setPhase('success')
@@ -113,7 +119,17 @@ export default function ClockInPage() {
       setMessage(`Welcome, ${selected.name}! Clock-in recorded via PIN.`)
     } else {
       setPhase('error')
-      setMessage(data.error || 'Clock-in failed')
+      setMessage(data?.error || 'Clock-in failed')
+    }
+  }
+
+  async function loadTeachers() {
+    try {
+      const response = await fetch('/api/teachers')
+      const data = await parseJsonResponse(response)
+      setTeachers(Array.isArray(data) ? data : [])
+    } catch {
+      setTeachers([])
     }
   }
 
@@ -250,4 +266,15 @@ function base64urlToBuffer(base64url: string): ArrayBuffer {
 function bufferToBase64url(buffer: ArrayBuffer): string {
   const bin = String.fromCharCode(...Array.from(new Uint8Array(buffer)))
   return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+}
+
+async function parseJsonResponse(response: Response) {
+  const text = await response.text()
+  if (!text) return null
+
+  try {
+    return JSON.parse(text)
+  } catch {
+    throw new Error('Server returned an invalid response')
+  }
 }

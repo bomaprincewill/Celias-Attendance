@@ -23,16 +23,19 @@ export default function AdminDashboard() {
 
   const load = useCallback(async () => {
     setRefreshing(true)
-    const [t, a, ta] = await Promise.all([
-      fetch('/api/teachers').then(r => r.json()),
-      fetch('/api/attendance').then(r => r.json()),
-      fetch('/api/attendance?filter=today').then(r => r.json()),
-    ])
-    setTeachers(t)
-    setAttendance(a)
-    setTodayAtt(ta)
-    setLoading(false)
-    setRefreshing(false)
+    try {
+      const [t, a, ta] = await Promise.all([
+        fetch('/api/teachers').then(parseJsonResponse),
+        fetch('/api/attendance').then(parseJsonResponse),
+        fetch('/api/attendance?filter=today').then(parseJsonResponse),
+      ])
+      setTeachers(Array.isArray(t) ? t : [])
+      setAttendance(Array.isArray(a) ? a : [])
+      setTodayAtt(Array.isArray(ta) ? ta : [])
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
   }, [])
 
   useEffect(() => {
@@ -451,4 +454,15 @@ export default function AdminDashboard() {
       </div>
     </div>
   )
+}
+
+async function parseJsonResponse(response: Response) {
+  const text = await response.text()
+  if (!text) return null
+
+  try {
+    return JSON.parse(text)
+  } catch {
+    throw new Error('Server returned an invalid response')
+  }
 }
